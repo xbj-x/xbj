@@ -3,9 +3,11 @@ import qs from "qs"
 import router, { routes } from "../router"
 import store from "../store"
 import { errorAlert } from "./alert"
+import Vue from "vue"
 
 // 开发环境使用 8080
 let baseUrl = "/aa"
+Vue.prototype.$imgPre="http://localhost:3000"
 
 // 生产环境使用 打包
 // let baseUrl=""
@@ -216,3 +218,72 @@ export const reqUserCount = () => {
 }
 
 // ==========管理员接口 结束================
+
+
+// ==========分类接口 开始================
+// 添加
+export const reqcateAdd=(cate)=>{
+    // cate={name:12,img:File,age:20}
+    let d=new FormData()
+    /*
+    d.append("name",12)
+    d.append("img",file)
+    d.append("age",20)
+    */ 
+
+    for(let i in cate){
+        d.append(i,cate[i])
+    }
+    return axios({
+        url:baseUrl+"/api/cateadd",
+        method:"post",
+        data:d
+    })
+}
+
+// 列表 p={istree:true}  p{pid:1}
+export const reqcateList=(p)=>{
+    return axios({
+        url:baseUrl+"/api/catelist",
+        method:"get",
+        params:p
+    })
+}
+
+// 删除
+export const reqcateDel=(id)=>{
+    return axios({
+        url:baseUrl+"/api/catedelete",
+        method:"post",
+        data:qs.stringify({
+            id:id
+        })
+    })
+}
+
+// 详情
+export const reqcateDetail=id=>{
+    return axios({
+        url:baseUrl+"/api/cateinfo",
+        method:"get",
+        params:{
+            id:id
+        }
+    })
+}
+
+
+// 修改  文件
+export const reqcateUpdate=(cate)=>{
+    let d=new FormData()
+    for(let i in cate){
+        d.append(i,cate[i])
+    }
+    return axios({
+        url:baseUrl+"/api/cateedit",
+        method:"post",
+        data:d
+    })
+}
+
+// ==========分类接口 结束================

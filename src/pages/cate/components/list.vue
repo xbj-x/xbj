@@ -7,14 +7,14 @@
       border
       :tree-props="{children: 'children'}"
     >
-      <el-table-column prop="id" label="菜单编号" sortable></el-table-column>
-      <el-table-column prop="title" label="菜单名称" sortable></el-table-column>
-      <el-table-column label="菜单图标">
+      <el-table-column prop="id" label="分类编号" sortable></el-table-column>
+      <el-table-column prop="catename" label="分类名称" sortable></el-table-column>
+      <el-table-column label="图片" sortable>
         <template slot-scope="scope">
-          <i :class="scope.row.icon"></i>
+          <img :src="$imgPre+scope.row.img" alt />
         </template>
       </el-table-column>
-      <el-table-column prop="url" label="菜单地址"></el-table-column>
+      
       <el-table-column prop="url" label="状态">
         <template slot-scope="scope">
           <el-button type="primary" v-if="scope.row.status===1">启用</el-button>
@@ -33,15 +33,19 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import { errorAlert, successAlert } from '../../../utils/alert';
-import { reqMenuDel } from '../../../utils/http';
+import { reqcateDel } from '../../../utils/http';
 export default {
   // 20.接收list
-  props:["list"],
+  // props:["list"],
   computed: {
-    ...mapGetters({}),
+    ...mapGetters({
+      list:"cate/list"
+    }),
   },
   methods: {
-    ...mapActions({}),
+    ...mapActions({
+      reqList:"cate/reqList"
+    }),
     // 28.删除
     del(id){
       this.$confirm("你确定要删除吗？","删除提示",{
@@ -73,8 +77,15 @@ export default {
       this.$emit("edit",id)
     },
   },
-  mounted() {},
+  mounted() {
+    // 一进来就发起请求
+    this.reqList();
+  },
 };
 </script>
 <style scoped>
+img {
+  width: 80px;
+  height: 80px;
+}
 </style>

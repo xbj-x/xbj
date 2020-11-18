@@ -4,22 +4,22 @@
     <el-button type="primary" class="tianjia" @click="willAdd">添加</el-button>
 
     <!-- table -->
-    <v-list :list="list" @init="init" @edit="edit($event)"></v-list>
+    <v-list @edit="edit"></v-list>
 
     <!-- 弹框 -->
-    <v-form :info="info" :list="list" @init="init" ref="form"></v-form>
+    <v-form :info="info" ref="form"></v-form>
   </div>
 </template>
 <script>
 import { mapGetters, mapActions } from "vuex";
 import vList from "./components/list.vue";
 import vForm from "./components/form.vue";
-import { reqMenuList } from "../../utils/http";
+import { reqUserList,reqUserCount } from "../../utils/http";
 export default {
   data() {
     return {
       // 16.列表数据
-      list: [],
+      // list: [],
       // 1.弹框的状态
       info: {
         isshow: false,
@@ -33,14 +33,16 @@ export default {
   methods: {
     ...mapActions({}),
     willAdd() {
-      this.info.isshow = true;
-      this.info.title="添加菜单"
+      this.info={
+        isshow:true,
+        title:"添加分类"
+      }
     },
-    init() {
-      reqMenuList().then((res) => {
-        this.list = res.data.list;
-      });
-    },
+    // init() {
+    //   reqcateList().then((res) => {
+    //     this.list = res.data.list;
+    //   });
+    // },
     // 33.处理编辑
     edit(id) {
       // 弹框出现
@@ -52,7 +54,7 @@ export default {
     },
   },
   mounted() {
-    this.init();
+ 
   },
   components: {
     vList,

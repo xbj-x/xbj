@@ -1,138 +1,147 @@
 <template>
-  <div>
+  <div class="add">
     <el-dialog :title="info.title" :visible.sync="info.isshow" @closed="closed">
-      <el-form :model="form">
-        <el-form-item label="菜单名称" label-width="120px">
-          <el-input v-model="form.title" autocomplete="off"></el-input>
-        </el-form-item>
-        <el-form-item label="上级菜单" label-width="120px">
-          <el-select v-model="form.pid" placeholder="请选择" @change="changePid">
-            <el-option label="顶级菜单" :value="0"></el-option>
+      <el-form :model="user">
+        <el-form-item label="上级分类" label-width="120px">
+          <el-select v-model="user.pid" placeholder="请选择角色">
+            <el-option :value="0" label="顶级分类"></el-option>
             <!-- 23.list遍历 -->
-            <el-option v-for="item in list" :key="item.id" :label="item.title" :value="item.id"></el-option>
+            <el-option v-for="item in cateList" :key="item.id" :label="item.catename" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="菜单类型" label-width="120px">
-          <el-radio v-model="form.type" :label="1" disabled>目录</el-radio>
-          <el-radio v-model="form.type" :label="2" disabled>菜单</el-radio>
+        <el-form-item label="分类名称" label-width="120px">
+          <el-input v-model="user.catename" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="菜单图标" v-if="form.type===1" label-width="120px">
-          <el-select v-model="form.icon" placeholder="请选择">
-            <el-option v-for="item in icons" :key="item" :value="item">
-              <i :class="item"></i>
-            </el-option>
-          </el-select>
+        <el-form-item label="图片" v-if="user.pid!==0" label-width="120px" >
+         <el-upload
+            class="avatar-uploader"
+            action="#"
+            :show-file-list="false"
+            :on-change="changeFile2"
+          >
+            <img v-if="imgUrl" :src="imgUrl" class="avatar" />
+            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+          </el-upload>
         </el-form-item>
 
-        <el-form-item label="菜单地址" label-width="120px">
-          <el-select v-model="form.url" placeholder="请选择">
-            <!-- 10.遍历routes -->
-            <el-option
-              v-for="item in routes"
-              :key="item.path"
-              :label="item.name+'--/'+item.path"
-              :value="'/'+item.path"
-            ></el-option>
-          </el-select>
-        </el-form-item>
         <el-form-item label="状态" label-width="120px">
-          <el-switch v-model="form.status" :active-value="1" :inactive-value="2"></el-switch>
+          <el-switch v-model="user.status" :active-value="1" :inactive-value="2"></el-switch>
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="add" v-if="info.title==='添加菜单'">添 加</el-button>
+        <el-button type="primary" @click="add" v-if="info.title==='添加分类'">添 加</el-button>
         <el-button type="primary" @click="update" v-else>修 改</el-button>
       </div>
     </el-dialog>
   </div>
 </template>
 <script>
+import path from "path";
 import { mapGetters, mapActions } from "vuex";
-import { routes } from "../../../router";
-import { reqMenuAdd, reqMenuDetail, reqMenuUpdate } from "../../../utils/http";
+import { reqcateAdd, reqcateDetail, reqcateUpdate,reqRoleList } from "../../../utils/http";
 import { successAlert, errorAlert } from "../../../utils/alert";
 export default {
   // 接收info 接收list
-  props: ["info", "list"],
+  props: ["info"],
   data() {
     return {
-      // icon集合
-      icons: [
-        "el-icon-s-tools",
-        "el-icon-user-solid",
-        "el-icon-s-help",
-        "el-icon-s-operation",
-      ],
-      // 9.定义routes
-      routes: routes,
-      // dialogTableVisible: false,
-      form: {
-        pid: "",
-        title: "",
-        icon: "",
-        type: "",
-        url: "",
-        status: 1,
+      user: {
+        pid:"",
+        catename:"",
+        img:null,
+        status:1
       },
-      formLabelWidth: "120px",
+      imgUrl:"",
     };
   },
   computed: {
-    ...mapGetters({}),
+    ...mapGetters({
+      cateList:"cate/list"
+    }),
   },
   methods: {
-    ...mapActions({}),
+    // 3.选择了文件
+    changeFile(e){
+      let file=e.target.files[0];
+
+      // 判断文件大小  file.size B ，1M=1024k 1k=1024b
+      if(file.size>2*1024*1024){
+        errorAlert("文件大小不能超过2M");
+        return;
+      }
+
+      // 判断文件类型
+      let extname=path.extname(file.name);//'.jpg'
+      let arr=[".jpg",".jpeg",".png",".gif"]
+      if(!arr.includes(extname)){
+        errorAlert("请上传正确的图片格式！")
+        return;
+      }
+
+      //URL.createObjectURL(file)将一个文件生成一个URL地址
+      this.imgUrl=URL.createObjectURL(file)
+
+      // 给user.img赋值
+      this.user.img=file;
+    },
+
+    //element-ui的上传文件
+    changeFile2(e){
+      let file=e.raw;
+
+
+      this.imgUrl=URL.createObjectURL(file)
+
+      this.user.img=file;
+    },
+
+
+    ...mapActions({
+      reqList:"cate/reqList"
+    }),
+
     cancel() {
       this.info.isshow = false;
     },
     empty() {
-      this.form = {
+      this.user = {
         pid: "",
-        title: "",
-        icon: "",
-        type: "",
-        url: "",
+        catename:"",
+        img:null,
         status: 1,
       };
+      this.imgUrl="";
     },
     add() {
       // 发起添加的请求
-      reqMenuAdd(this.form).then((res) => {
+      reqcateAdd(this.user).then((res) => {
         if (res.data.code === 200) {
           // 弹框显示成功
           successAlert("添加成功");
           // 弹框消失
           this.cancel();
-          // form置空
+          // 数据清空
           this.empty();
-          // 24.通知menu刷新列表数据
-          this.$emit("init");
-        } else {
-          errorAlert(res.data.msg);
+          // 刷新list
+          this.reqList();
         }
       });
     },
-    changePid() {
-      // 如果上级菜单是 顶级菜单，那么form.type=1；否则是2
-      if (this.form.pid === 0) {
-        this.form.type = 1;
-      } else {
-        this.form.type = 2;
-      }
-    },
     // 36.获取一条数据
     getOne(id) {
-      reqMenuDetail(id).then((res) => {
-        // 此时form上是没有id的
-        this.form = res.data.list;
+      reqcateDetail(id).then((res) => {
+        // user没有id
+        this.user = res.data.list;
+
+        this.imgUrl=this.$imgPre+this.user.img;
         // 补id
-        this.form.id = id;
+        this.user.id = id;
       });
     },
     //37 点了修改
     update() {
-      reqMenuUpdate(this.form).then((res) => {
+      reqcateUpdate(this.user).then((res) => {
         if (res.data.code === 200) {
           //成功弹框
           successAlert("修改成功");
@@ -141,9 +150,7 @@ export default {
           //form重置
           this.empty();
           //列表刷新
-          this.$emit("init");
-        } else {
-          errorAlert(res.data.msg);
+          this.reqList();
         }
       });
     },
@@ -151,13 +158,76 @@ export default {
     closed() {
       // 如果是添加出现，点击了取消，此时，什么都不做
       // 如果是编辑出现，点击了取消，此时，form置空
-      if (this.info.title === "编辑菜单") {
+      if (this.info.title === "编辑分类") {
         this.empty();
       }
     },
   },
-  mounted() {},
+  mounted() {
+    // 一进来先获取列表数据
+    reqRoleList().then(res=>{
+      if(res.data.code==200){
+        this.roleList=res.data.list;
+      }
+    })
+  },
 };
 </script>
-<style scoped>
+<style scoped lang="stylus">
+.myupload {
+  width: 100px;
+  height: 100px;
+  border-radius: 5px;
+  border: 1px dashed #ccc;
+  position: relative;
+}
+.myupload h3 {
+  width: 100%;
+  height: 100px;
+  font-size: 30px;
+  text-align: center;
+  line-height: 100px;
+  color: #666;
+  font-weight: 100;
+}
+.myupload .ipt {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+.myupload .img {
+  width: 100px;
+  height: 100px;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+  // 穿透
+ .add >>> .el-upload {
+    border: 1px dashed #d9d9d9 ;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
 </style>
